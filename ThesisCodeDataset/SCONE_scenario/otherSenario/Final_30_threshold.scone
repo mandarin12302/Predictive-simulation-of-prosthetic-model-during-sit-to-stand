@@ -1,0 +1,532 @@
+CmaOptimizer {
+	signature_prefix = KS30_thresholdv0_IG0314KS0000060.par_Final_DATE_TIME
+	max_errors = 10
+	
+	# init file normal seat
+	init{file ="data/init_files/0314KS0000060.par"}
+	#ForLuaCon
+	#0302NewHfdBaCo
+	#0302STS
+	#newhfdJMopt
+	#0303STS
+	#0305STS01
+	#0305STS0203#KS20
+	#0305STSeffort01.par
+	#0302NewHfdBaCo.par
+	#0308STSeffort01#20   02#30
+	#0308STSeffort03KS50v2.par   #50
+	#0309STSeffortKS10100AS1100   #40
+	#0309STSeffortKS10100
+	#0310STSeffortKS55100 #55
+	#0310STSeffortKS60100.par #60
+	###
+	#0311KS0000    #60
+	#0312KS000075  #75
+	#0313KS000085.par  #85
+	#0313KS000085for90
+	#0313KS0000for90v0
+	#0314KS0000010.par #0
+	#0314KS0000020 #20
+	#0314KS0000060 #60
+	#0317KS0000090 #90
+	#0317KS00000134
+	#init{file ="data/init_files/NormalSeat.par"}
+	
+	min_progress = 1e-4
+	#use_init_file_std = false 
+	#init_file_std_offset = 0.05
+	#init_file_std_factor = 0.2
+	
+	
+	SimulationObjective {
+		max_duration = 15#10#15#10#7#15 
+		
+		# Model used in simulation
+		ModelHyfydy {
+			
+			signature_postfix = HFD
+			model_file = data/semifinalHFDKS0.hfd		
+			
+			# Init posture	
+			state_init_file = data/InitialState.zml	
+			initial_load = 1
+			
+			JointMotorModifier {#*
+				include = knee_r
+				stiffness { value = 30.8~0.01<29,31> }#130~0.01<20,70> 
+				damping { value = 10~0.01<0.1,50> } #10~0.01<0.1,60>
+			} 
+			JointMotorModifier {#*
+				include = ankle_r
+				stiffness { value = 5~0.01<1,100> }#5~0.01<0.1,60>
+				damping { value = 5~0.01<0.1,25> } 
+			}
+			
+			
+			
+			
+			<< data/HfdConfigPlanarMotorCollisionV2.zml >>
+		}
+		
+		##Controller for STW, based on [Geyer & Herr 2010]["0.2~0.01<0.2,2>" "0.30~0.01<0.1,1.5>"] ###[0.2~0.01<0.2,4>]
+		
+		CompositeController {
+			
+			SequentialController{
+				transition_intervals = ["0.8~0.01<0.2,2>" "0.5~0.01<0.1,2>"]#0.3	#[0.2~0.01<0.2,4>]
+				
+				
+				# reflexcontroller 1		
+				<< data/RF1_H1120_STW_2023_kL_kf_kv_vest_deleteM.scone >>
+				
+				
+				# reflexcontroller 2
+				<< data/RF2_H1120_STW_2023_kL_kf_kv_vest_deleteM.scone >>	
+				
+				# Gait controller
+				#<< data/Gait_H1120_STW_2023_delays_02022023.scone >>
+				
+				# BalanceController
+				#<< data/ControllerReflexBalance.scone >>	
+				<< data/RF3_H1120_STW_2023_kL_kf_kv_vest_deleteM.scone >>	
+			}
+			
+			
+			#ScriptController {
+			#script_file = "data/ScriptControllerMotorSTS.lua"
+			#}
+			
+			
+		}
+		#<< data/ControllerReflexBalance.scone >>	
+		
+		# Measure for STS
+		#CompositeMeasure {
+		##BalanceMeasure { termination_height = 0.5 weight = 100 }
+		##EffortMeasure {
+		##name = Effort
+		##weight = 0.01
+		##measure_type = Wang2012
+		###stop_time = 1
+		##}
+		##CompositeMeasure {
+		##name = JointLimits
+		##symmetric = 1
+		##DofMeasure {
+		##dof = knee_angle
+		##force { min = 0 max = 0 abs_penalty = 10 }
+		##weight = 50
+		##}
+		##DofMeasure {
+		##dof = hip_flexion
+		##force { min = 0 max = 0 abs_penalty = 10 }
+		##weight = 70
+		##}
+		##DofMeasure {
+		##dof = ankle_angle
+		##force { min = 0 max = 0 abs_penalty = 10 }
+		##}	
+		#MimicMeasure {
+		#file = data/P1242_C101.sto
+		#name = mimic_measure 	
+		#weight = 1000
+		#threshold = 0.015
+		#include_states = pelvis.pos.y;pelvis.pos.x;pelvis_tilt;lumbar_extension
+		#stop_time = 1
+		#}	
+		#Measure{
+		#type = DofMeasure
+		#dof = pelvis_tilt
+		#name = pelvis_tilt_penalty_1
+		#position{min = 0 max=0 squared_penalty=1}
+		#weight = 10
+		##stop_time = 1
+		#}
+		
+		
+		CompositeMeasure {
+			
+			
+			#MimicMeasure {
+			#file = data/P1242_C101.sto
+			#name = mimic_measure 	
+			#weight = 1000#1000
+			#threshold = 0.015
+			#include_states = pelvis.pos.y;pelvis.pos.x;
+			#stop_time = 0.8#1.5#4#0.8
+			#}		
+			#MimicMeasure {
+			#file = data/P1242_C101.sto
+			#name = mimic_measure 	
+			#weight = 10000#1000
+			#threshold = 0.015
+			#include_states = pelvis.pos.y;#pelvis.pos.x;
+			#start_time = 1.8#4#0.8
+			#}		
+			
+			Measure{
+				type = DofMeasure
+				dof = pelvis_ty
+				name = hight_penalty
+				position{min = 0.9 max= 1.1 abs_penalty=10}
+				weight = 50000#10000
+				#start_time= 0.8#1.5
+				threshold = 0.135
+			}
+			Measure{
+				type = DofMeasure
+				dof = lumbar_extension
+				name = lumbar_penalty_1
+				position{min = -15 max=10 squared_penalty=1}
+				weight = 1#0.1#0.02
+				#stop_time = 1
+				threshold = 150
+			}
+			
+			Measure{
+				type = DofMeasure
+				dof = thorax_extension
+				name = thorax_penalty
+				position{min = -15 max=15 squared_penalty=1}
+				weight = 2#1#20#0.02
+				threshold =2 
+			}
+			
+			Measure{
+				type = DofMeasure
+				dof = pelvis_tilt
+				name = pelvis_penalty
+				position{min = -50 max = 30 squared_penalty=1}
+				weight = 2#0.1			
+				threshold = 2#0.03
+			}
+			
+			
+			
+			CompositeMeasure {
+				#GaitMeasure {
+				
+				#name = Gait
+				#weight = 10
+				#initiation_steps = 3
+				#threshold = 0.05
+				#termination_height = 1.2
+				#min_velocity = 0.8
+				#start_time = 1.2
+				#stop_time = 6
+				
+				#}
+				
+				EffortMeasure {
+					name = Effort_STW_cubmuscle
+					measure_type = CubedMuscleActivation
+					weight = 1000#5000#500#200#1#0.1
+				}			
+				
+				ReactionForceMeasure {
+					name = GRF
+					#start_time = 1
+					weight = 0.1
+					max = 1.4
+					abs_penalty = 1
+					
+				}
+				
+				EffortMeasure {
+					name = Effort
+					weight = 1#5#0.5#0.1#0.01
+					measure_type = Wang2012
+					#use_cost_of_transport = 1
+				}		
+				
+				#EffortMeasure{
+				#name = MotorTorque
+				#weight = 0.0003
+				#measure_type = MotorTorque
+				#order = 2
+				#use_cost_of_transport = 1					
+				
+				#}
+				
+				
+				BodyMeasure {
+					name = headACC
+					body = thorax
+					acceleration { min = -1 max = 1 squared_penalty = 1 }
+					#start_time = 1.2
+					#stop_time = 12
+					weight = 10
+					threshold = 5#0
+				}
+				
+				
+				CompositeMeasure {
+					name = DofLimits
+					symmetric = 1
+					stop_time = 15
+					#DofMeasure {
+					#weight = 0.1
+					#dof = ankle_angle
+					#position { min = -10 max = 10 squared_penalty = 1 }
+					#}
+					
+					DofMeasure {
+						weight = 0.1
+						dof = lumbar_extension
+						name = lumbar_extension_2
+						position { min = -50 max = 30 squared_penalty = 1 }
+						threshold = 2
+						start_time = 1
+					}
+					
+					#DofMeasure {
+					
+					#weight = 0.01
+					#threshold = 0.5
+					#dof = knee_angle
+					#force { min = -30 max = 0 abs_penalty = 1 }
+					#}
+					
+					
+					DofMeasure {
+						weight = 1#0.5#0.1
+						dof = hip_flexion
+						position { min = -10 max = 10 squared_penalty = 1 }
+						start_time = 1.5#1.2
+						threshold = 1
+					}
+					DofMeasure {
+						weight = 1#0.5#0.1
+						dof = knee_angle
+						position { min = -10 max = 10 squared_penalty = 1 }
+						start_time = 1.5#1.2
+						threshold = 1
+					}
+					DofMeasure {
+						weight = 1#0.5#0.1
+						dof = ankle_angle
+						position { min = -15 max = 15 squared_penalty = 1 }
+						start_time = 1.5#1.2
+						threshold = 1
+					}
+					
+					
+					
+					
+					
+					
+					
+					
+					
+				}
+				
+				# Measure for standing balance
+				CompositeMeasure {
+					# Penalize falling
+					BalanceMeasure {
+						termination_height = 0.6
+						weight = 100
+					}
+					
+					
+				}
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	#Measure{
+	#type = DofMeasure
+	#dof = thorax_extension
+	#name = thorax_penalty
+	#position{min = -15 max=15 squared_penalty=1}
+	#weight = 0.02
+	#}
+	
+	#Measure{
+	#type = DofMeasure
+	#dof = pelvis_tilt
+	#name = pelvis_penalty
+	#position{min = -50 max = 30 squared_penalty=1}
+	#weight = 0.1			
+	#threshold = 0.03
+	#}
+	
+	#Measure{
+	#type = DofMeasure
+	#dof = lumbar_extension
+	#name = lumbar_penalty_1
+	#position{min = -60 max=0 squared_penalty=1}
+	#weight = 0.02
+	##stop_time = 1
+	#}
+	
+	#Measure{
+	#type = DofMeasure
+	#dof = thorax_extension
+	#name = thorax_penalty
+	#position{min = -15 max=15 squared_penalty=1}
+	#weight = 0.02
+	#}
+	
+	#Measure{
+	#type = DofMeasure
+	#dof = pelvis_tilt
+	#name = pelvis_penalty
+	#position{min = -50 max = 30 squared_penalty=1}
+	#weight = 0.1			
+	#threshold = 0.03
+	#}
+	
+}
+#DofMeasure {
+#dof = pelvis_tilt
+#force { min = 0 max = 0 squared_penalty=1 }
+#weight = 50
+#}	
+
+#DofMeasure {
+
+#dof = hip_flexion_r
+#force { min = 0 max = 0 squared_penalty=1 }
+#weight = 100
+#}
+#DofMeasure {
+
+#dof = hip_flexion_l
+#force { min = 0 max = 0 squared_penalty=1 }
+#weight = 100
+#}
+###
+/*MimicMeasure {
+	file = data/P1242_C101.sto
+	name = mimic_measure 	
+	weight = 1
+	threshold = 0.015
+	include_states = pelvis.pos.y;pelvis.pos.x;
+	stop_time = 0.8
+}		
+Measure{
+	type = DofMeasure
+	dof = lumbar_extension
+	name = lumbar_penalty_1
+	position{min = -60 max=0 squared_penalty=1}
+	weight = 2
+	stop_time = 1
+}
+
+Measure{
+	type = DofMeasure
+	dof = thorax_extension
+	name = thorax_penalty
+	position{min = -15 max=15 squared_penalty=1}
+	weight = 2
+}
+
+Measure{
+	type = DofMeasure
+	dof = pelvis_tilt
+	name = pelvis_penalty
+	position{min = -50 max = 30 squared_penalty=1}
+	weight = 0.1			
+	threshold = 0.03
+}
+
+
+
+CompositeMeasure {
+	GaitMeasure {
+		
+		name = Gait
+		weight = 10
+		initiation_steps = 3
+		threshold = 0.05
+		termination_height = 1.2
+		min_velocity = 0.8
+		start_time = 1.2
+		stop_time = 6
+		
+	}
+	
+	EffortMeasure {
+		name = Effort_STW_cubmuscle
+		measure_type = CubedMuscleActivation
+		weight = 0.1
+	}			
+	
+	ReactionForceMeasure {
+		name = GRF
+		start_time = 1
+		weight = 0.1
+		max = 1.4
+		abs_penalty = 1
+		
+	}
+	
+	EffortMeasure {
+		name = Effort
+		weight = 0.01
+		measure_type = Wang2012
+		use_cost_of_transport = 1
+	}		
+	
+	EffortMeasure{
+		name = MotorTorque
+		weight = 0.0003
+		measure_type = MotorTorque
+		order = 2
+		use_cost_of_transport = 1					
+		
+	}
+	
+	
+	BodyMeasure {
+		name = headACC
+		body = thorax
+		acceleration { min = -1 max = 1 squared_penalty = 1 }
+		start_time = 1.2
+		stop_time = 12
+		weight = 10
+		threshold = 1
+	}
+	
+	
+	CompositeMeasure {
+		name = DofLimits
+		symmetric = 1
+		stop_time = 15
+		DofMeasure {
+			weight = 0.1
+			dof = ankle_angle
+			position { min = -60 max = 60 squared_penalty = 1 }
+		}
+		
+		DofMeasure {
+			weight = 0.1
+			dof = lumbar_extension
+			name = lumbar_extension_2
+			position { min = -50 max = 30 squared_penalty = 1 }
+			threshold = 2
+			start_time = 1
+		}
+		
+		
+	}
+}*/		
+
+
+
+
+
+
