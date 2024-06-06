@@ -1,24 +1,44 @@
 # Predictive-simulation-of-prosthetic-model-during-sit-to-stand
 Effect of Prosthetic Knee Stiffness on the Sit-to-Stand Movement of a Unilateral Transfemoral Amputee model - A Predictive Simulation Study
+
 ThesisCodeDataset/
+
 ├── dataprocess/
+
 │   ├── kinematic_kinatic/
+
 │   └── pythoncode/
+
 ├── SCONE_scenario/
+
 │   ├── data/
+
 │   │   ├── init_files/
+
 │   │   │   ├── OtherInitialGuess/
+
 │   │   │   └── 0314KS0000060.par
+
 │   │   ├── HfdConfigPlanarMotorCollisionV2.zml
+
 │   │   ├── InitialState.zml
+
 │   │   ├── P1242_C101.sto
+
 │   │   ├── RF1_H1120_STW_2023_kl_kf_kv_vest_deleteM.scone
+
 │   │   ├── RF2_H1120_STW_2023_kl_kf_kv_vest_deleteM.scone
+
 │   │   ├── RF3_H1120_STW_2023_kl_kf_kv_vest_deleteM.scone
+
 │   │   └── semifinalHFDKS0.hfd
+
 │   ├── otherScenario/
+
 │   └── Final_00_threshold.scone
+
 └── readme.txt
+
 
 
 1. dataprocess/:
